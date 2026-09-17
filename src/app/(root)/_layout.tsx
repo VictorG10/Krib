@@ -1,16 +1,19 @@
 import { useAuth } from "@clerk/expo";
 import { Redirect, Stack } from "expo-router";
 
-const AuthLayout = () => {
+const RootLayout = () => {
   const { isSignedIn, isLoaded } = useAuth();
 
-  if (!isLoaded) return null;
+  // sync Clerk user -> Supabase
 
-  if (isSignedIn) {
-    return <Redirect href="/" />;
+  if (!isLoaded) {
+    return null;
+  }
+  if (!isSignedIn) {
+    return <Redirect href="/(auth)/sign-in" />;
   }
 
   return <Stack screenOptions={{ headerShown: false }} />;
 };
 
-export default AuthLayout;
+export default RootLayout;
