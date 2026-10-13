@@ -1,8 +1,17 @@
+import FeaturedCard from "@/components/Featured";
+import PropertyCard from "@/components/PropertyCard";
 import { useUser } from "@clerk/expo";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
-import { FlatList, Image, Text, TouchableOpacity, View } from "react-native";
+import {
+    ActivityIndicator,
+    FlatList,
+    Image,
+    Text,
+    TouchableOpacity,
+    View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { supabase } from "../../../../lib/supabase";
 import { Property } from "./../../../../types/index";
@@ -87,9 +96,40 @@ export default function HomeScreen() {
               <Text className="text-gray-400 text-sm flex-1">
                 Search properties, cities...
               </Text>
+
+              <TouchableOpacity
+                onPress={() =>
+                  router.push("/(root)/(tabs)/search?openFilters=true")
+                }
+                className="w-8 h-8 bg-blue-600 rounded-xl items-center justify-center"
+              >
+                <Ionicons name="options-outline" size={15} color={"white"} />
+              </TouchableOpacity>
             </TouchableOpacity>
 
             {/* Featured Section  */}
+            <View className="mb-6">
+              <Text className="text-gray-900 text-lg font-bold px-5 mb-4">
+                Featured
+              </Text>
+
+              {loading ? (
+                <ActivityIndicator
+                  size={"small"}
+                  color={"#2563EB"}
+                  className="py-10"
+                />
+              ) : (
+                <FlatList
+                  data={featured}
+                  keyExtractor={(item) => item.id}
+                  renderItem={({ item }) => <FeaturedCard property={item} />}
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{ paddingHorizontal: 20 }}
+                />
+              )}
+            </View>
 
             {/* Recommended Header  */}
             <Text className="text-gray-900 text-lg font-bold px-5 mb-4">
@@ -99,7 +139,7 @@ export default function HomeScreen() {
         }
         renderItem={({ item }) => (
           <View className="px-5">
-            <Text className="">{item.title}</Text>
+            <PropertyCard property={item} />
           </View>
         )}
         ListEmptyComponent={

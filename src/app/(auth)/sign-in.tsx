@@ -14,7 +14,7 @@ import {
 
 const SignIn = () => {
   const { signIn, errors, fetchStatus } = useSignIn();
-  const { user } = useUser();
+  const { user, isLoaded } = useUser();
 
   const router = useRouter();
 
@@ -63,7 +63,15 @@ const SignIn = () => {
       console.error("Sign-in attempt not complete: ", signIn);
     }
 
-    console.log(`${user?.firstName} is just signed in`);
+    // console.log(`${user?.firstName} is just signed in`);
+    if (isLoaded && user) {
+      console.log(
+        "Signed in:",
+        user.id,
+        user.firstName,
+        user.primaryEmailAddress?.emailAddress,
+      );
+    }
   };
 
   const onVerifyPress = async () => {
