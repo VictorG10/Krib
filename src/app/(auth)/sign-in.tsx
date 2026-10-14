@@ -1,6 +1,6 @@
 import { useSignIn, useUser } from "@clerk/expo";
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
     ActivityIndicator,
     Alert,
@@ -21,8 +21,50 @@ const SignIn = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [code, setCode] = useState("");
+  const [pendingSignIn, setPendingSignIn] = useState<{
+    userId: string;
+    redirectUrl?: string;
+  } | null>(null);
 
   const isLoading = fetchStatus === "fetching";
+
+  useEffect(() => {
+    if (!isLoaded || !user || user.id !== pendingSignIn?.userId) {
+      return;
+    }
+
+    console.log("Signed in:", user.primaryEmailAddress?.emailAddress);
+
+    if (pendingSignIn.redirectUrl) {
+      router.replace(pendingSignIn.redirectUrl as any);
+    }
+
+    setPendingSignIn(null);
+  }, [isLoaded, pendingSignIn, router, user]);
+
+  const finalizeSignIn = async () => {
+    await signIn.finalize({
+      navigate: ({ session, decorateUrl }) => {
+        if (!session.user) {
+          console.error("Sign-in completed without a session user.");
+          return;
+        }
+
+        const pending = { userId: session.user.id };
+
+        if (session.currentTask) {
+          console.log(session.currentTask);
+          setPendingSignIn(pending);
+          return;
+        }
+
+        setPendingSignIn({
+          ...pending,
+          redirectUrl: decorateUrl("/"),
+        });
+      },
+    });
+  };
 
   const onSignInPress = async () => {
     const { error } = await signIn.password({
@@ -38,17 +80,7 @@ const SignIn = () => {
     }
 
     if (signIn.status === "complete") {
-      await signIn.finalize({
-        navigate: ({ session, decorateUrl }) => {
-          if (session?.currentTask) {
-            console.log(session?.currentTask);
-            return;
-          }
-
-          const url = decorateUrl("/");
-          router.replace(url as any);
-        },
-      });
+      await finalizeSignIn();
     } else if (signIn.status === "needs_second_factor") {
       await signIn.mfa.sendPhoneCode();
     } else if (signIn.status === "needs_client_trust") {
@@ -62,16 +94,6 @@ const SignIn = () => {
     } else {
       console.error("Sign-in attempt not complete: ", signIn);
     }
-
-    // console.log(`${user?.firstName} is just signed in`);
-    if (isLoaded && user) {
-      console.log(
-        "Signed in:",
-        user.id,
-        user.firstName,
-        user.primaryEmailAddress?.emailAddress,
-      );
-    }
   };
 
   const onVerifyPress = async () => {
@@ -80,17 +102,7 @@ const SignIn = () => {
     });
 
     if (signIn.status === "complete") {
-      await signIn.finalize({
-        navigate: ({ session, decorateUrl }) => {
-          if (session?.currentTask) {
-            console.log(session?.currentTask);
-            return;
-          }
-
-          const url = decorateUrl("/");
-          router.replace(url as any);
-        },
-      });
+      await finalizeSignIn();
     }
   };
 
