@@ -34,7 +34,11 @@ const PropertyCard = ({
       onPress={() => router.push(`/(root)/property/${property.id}`)}
     >
       <Image
-        source={{ uri: property.images[0] }}
+        source={
+          property.images.length > 0
+            ? { uri: property.images[0] }
+            : require("@/assets/images/kribb.png")
+        }
         className="w-28 h-28"
         resizeMode="cover"
       />
@@ -97,3 +101,5 @@ const PropertyCard = ({
 };
 
 export default PropertyCard;
+
+// 2:09:15
